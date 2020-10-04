@@ -139,6 +139,7 @@ func main() {
 }
 
 func saveSummary(path string) {
+	fileExists, err := os.Stat(path)
 	summaryFile, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println(err)
@@ -146,11 +147,15 @@ func saveSummary(path string) {
 	}
 	defer summaryFile.Close()
 
+	if fileExists == nil {
+		summaryFile.WriteString(fmt.Sprintf("\"%s\",\"%s\",\"%s\",\"%s\"\n", "hash", "filepath", "bytes", "copies"))
+	}
+
 	for hash, files := range ds.Files {
 		if len(files) > 1 {
 			// _, err := summaryFile.WriteString(fmt.Sprintf("%s - %s Duplicates", hash, len(files)))
 			for _, file := range files {
-				summaryFile.WriteString(fmt.Sprintf("\"%s\",\"%s\"\n", hash, filepath.Join(file.Filepath, file.Filename)))
+				summaryFile.WriteString(fmt.Sprintf("\"%s\",\"%s\",\"%d\",\"%d\"\n", hash, filepath.Join(file.Filepath, file.Filename), file.Filesize, len(files)))
 			}
 		}
 	}
